@@ -5,7 +5,7 @@ import type { AnyRow, Provider, ProviderDetail, User } from './types';
 import { buildEvidenceAlignment } from './intelligenceMath';
 import { apiError, csvDownload, money, num, pct, statusClass } from './utils';
 
-export default function IntelligenceCenter({ state, stateName, provider, detail, marketSources, user, onSignIn, onOpenProvider }: { state: string; stateName: string; provider: Provider; detail: ProviderDetail; marketSources: AnyRow[]; user: User | null; onSignIn: () => void; onOpenProvider: (ccn: string) => void; }) {
+export default function IntelligenceCenter({ state, stateName, provider, detail, marketSources, user, onSignIn, onOpenProvider }: { state: string; stateName: string; provider: Provider; detail: ProviderDetail | null; marketSources: AnyRow[]; user: User | null; onSignIn: () => void; onOpenProvider: (ccn: string) => void; }) {
   const [intel, setIntel] = useState<AnyRow | null>(null);
   const [ssvi, setSsvi] = useState<AnyRow | null>(null);
   const [hcris, setHcris] = useState<AnyRow | null>(null);
