@@ -1,0 +1,23 @@
+[
+  {
+    "name": "hourly-intelligence-ops",
+    "cron": "20 * * * *",
+    "handler": "intelligenceOperationsHandler",
+    "timezone": "America/New_York",
+    "payload": { "limit": 4, "purpose": "process a bounded checkpointed watched-provider monitoring batch" }
+  },
+  {
+    "name": "physician-warehouse-checkpoint",
+    "cron": "50 * * * *",
+    "handler": "physicianWarehouseHandler",
+    "timezone": "America/New_York",
+    "payload": { "purpose": "advance one bounded checkpointed CMS physician warehouse step and record run status" }
+  },
+  {
+    "name": "daily-source-contract-health",
+    "cron": "10 5 * * *",
+    "handler": "sourceHealthHandler",
+    "timezone": "America/New_York",
+    "payload": { "purpose": "validate CMS and external source contracts once daily" }
+  }
+]

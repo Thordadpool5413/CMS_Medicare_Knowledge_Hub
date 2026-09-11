@@ -1,0 +1,61 @@
+# Tests
+
+## Test 1 - Universal provider search opens any U.S. hospice into a validated context [sanity]
+Viewport: desktop
+Covers: global provider search, GET /api/provider-search, cross-state market switching, GET /api/dashboard, GET /api/provider/:ccn, unified provider/trust context, Compare continuity
+Description: Verifies the app shell has one nationwide provider-search behavior and does not require the user to know which state workspace a hospice belongs to.
+
+Steps:
+1. Use the global header search to find a hospice by provider name or city outside the currently selected state
+2. Select a result showing provider name, city, state, county/equivalent and CCN
+3. After the new provider context validates, open Compare and add a second current-market provider
+
+Expected: Search results are national rather than limited to the current state; selecting a provider changes market state automatically when required and the unified context shows the selected provider and CCN only after validation; Compare remains usable with the selected provider as the focus; state-only Hospice Explorer filtering remains a separate local control.
+
+## Test 2 - Provider 360 exposes source-period alignment, metric provenance and bounded competitive evidence
+Viewport: desktop
+Covers: Provider 360, source vintage alignment, Metric Inspector, GET /api/intelligence, GET /api/ssvi/:ccn, GET /api/hcris/:ccn, Threat Score V3, evidence coverage boundaries
+Description: Verifies users can see whether source vintages align and inspect the meaning and provenance of important metrics without turning unavailable evidence into zero.
+
+Steps:
+1. Open Intelligence 360 for a provider and review Source Period Alignment
+2. Open Metric Inspector for Recent ADC trend and one quality or geography metric
+3. Review Threat Score V3 and expand scoring evidence for the highest returned competitor
+
+Expected: PAC, CAHPS, quality, monthly enrollment, SSVI and HCRIS periods are displayed independently; the alignment state is ALIGNED, DIRECTIONALLY COMPARABLE, PERIOD MISMATCH or PARTIAL VINTAGE with the stated confidence adjustment; metric inspectors show definition, source, calculation or coverage when applicable, and limitation; Threat Score continues to reweight missing evidence rather than treating it as zero.
+
+## Test 3 - Decision Room remains auditable and private operating truth keeps change history
+Viewport: desktop
+Covers: Decision Room confidence alignment, evidence ledger, private operational truth, PUT/DELETE /api/operational-truth/:fips, GET /api/operational-truth-history/:fips, private territory gate, execution guardrails
+Description: Verifies composite decisions expose their evidence basis and that changes to private serviceability/readiness evidence are auditable.
+
+Steps:
+1. Sign in, open Growth Strategy and select an Internal Operational Truth territory
+2. Change at least one readiness field, save it, then expand Operating evidence history
+3. Open Decision Room and expand Evidence ledger on a territory or competition recommendation
+
+Expected: The saved private evidence changes the effective territory gate according to the existing readiness rules; history shows a CREATE or UPDATE record with changed field names and timestamp; the Decision Room evidence ledger shows evidence basis, supporting facts, period-alignment state, gate and evidence confidence; source-period mismatch reduces applicable public-evidence confidence but never changes internal facts into CMS evidence.
+
+## Test 4 - Territory map uses real county geometry while preserving deployment guardrails
+Viewport: desktop
+Covers: GET /api/territory-map/:state, Census TIGERweb county/equivalent geometry, Territory Deployment 3.0, county selection, GET /api/county/:fips, serviceability guardrails
+Description: Verifies the visual territory experience maps actual county/equivalent boundaries without turning public geography into a licensure or eligibility claim.
+
+Steps:
+1. Open Territory for the current provider
+2. Review the geographic county/equivalent map and its Densify, Adjacent Expansion, Hold, Remote and Unscored legend
+3. Select a mapped county and review the existing County Economics panel
+
+Expected: County/equivalent polygons render from the Census geography endpoint and use deployment posture rather than arbitrary heat-map color; selecting a county opens its CMS economics detail; the map states that geography does not establish serviceability, drive time, staffing, licensure or patient-level hospice eligibility; if Census geometry is unavailable, the existing Territory Board and county table remain usable.
+
+## Test 5 - Data Lab reports real national build completeness on mobile
+Viewport: mobile
+Covers: GET /api/physician-warehouse-status, GET /api/hcris-routing/:ccn, GET /api/competition-coverage-status, System Diagnostics scheduled checkpoints, readiness ledger, responsive Data Lab
+Description: Verifies national architecture is not presented as completed data when checkpointed ingestion or model coverage remains unfinished.
+
+Steps:
+1. Open Data Lab on mobile and review National Completeness Control
+2. Review physician warehouse complete/building/queued/error counts, HCRIS form-routing status for the focus provider and competition cache coverage
+3. Run System Diagnostics and review the source-health, provider-monitor and physician-warehouse scheduler records, then review System Readiness
+
+Expected: Physician warehouse status reports real checkpoint counts rather than assuming national completion; HCRIS routing identifies freestanding model availability, parent-form requirement or unresolved routing without inventing financial values; competition coverage explicitly identifies the cache as provider-centric and not a completed national warehouse; Internal deployment truth is marked operational while its controlling facts remain user-supplied; the mobile layout remains readable without horizontal shell clipping.
