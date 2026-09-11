@@ -52,6 +52,8 @@ export default function IntelligenceCenter({ state, stateName, provider, detail,
   const whiteRows = white?.counties || [];
   const ssviReportable = ssvi?.fy2025?.reportable === true && ssvi?.fy2025?.totalScore !== null && ssvi?.fy2025?.totalScore !== undefined;
   const adcHistory = (detail?.history || []).filter((row) => row.adc !== null && row.adc !== undefined).slice(-3);
+  const latestAdc = adcHistory.length ? adcHistory[adcHistory.length - 1] : null;
+  const growth = adcHistory.length >= 2 && Number(adcHistory[0].adc) > 0 ? (Number(latestAdc?.adc) / Number(adcHistory[0].adc) - 1) * 100 : null;
   const growth = adcHistory.length >= 2 && Number(adcHistory[0].adc) > 0 ? (Number(adcHistory[adcHistory.length - 1]?.adc) / Number(adcHistory[0].adc) - 1) * 100 : null;
 
   const toggleWatch = async () => {
@@ -94,6 +96,7 @@ export default function IntelligenceCenter({ state, stateName, provider, detail,
       <Metric label='SSVI FY2025' value={ssviReportable ? num(ssvi?.fy2025?.totalScore) : 'NOT REPORTABLE'} sub='Oversight / variation context'/>
       <Metric label='Patient-service ZIPs' value={num(intel?.serviceArea?.focusZipCount)} sub='Observed CMS footprint'/>
       <Metric label='County footprint' value={num(geo?.counties?.length)} sub={geo?.mappingCoveragePct !== undefined ? `${pct(geo.mappingCoveragePct)} ZCTA mapping` : 'Census mapping'}/>
+      <Metric label='Recent ADC trend' value={growth === null ? 'INSUFFICIENT HISTORY' : pct(growth)} sub={adcHistory.length ? `${adcHistory[0].year} to ${latestAdc?.year}` : 'PAC history unavailable'}/>
       <Metric label='Recent ADC trend' value={growth === null ? 'INSUFFICIENT HISTORY' : pct(growth)} sub={adcHistory.length ? `${adcHistory[0].year} to ${adcHistory[adcHistory.length - 1]?.year}` : 'PAC history unavailable'}/>
     </div>
 
