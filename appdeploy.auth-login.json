@@ -1,0 +1,18 @@
+{
+  "methods": [
+    "google",
+    "apple",
+    "x"
+  ],
+  "headline": "National Hospice Intelligence Private Workspace",
+  "subtitle": "Sign in to keep win/loss intelligence private while using public CMS hospice market data nationwide.",
+  "style": {
+    "mode": "light",
+    "accentColor": "#176F79",
+    "backgroundColor": "#F7F9FB",
+    "panelColor": "#FFFFFF",
+    "textColor": "#17212B",
+    "fontFamily": "Inter, system-ui, sans-serif",
+    "borderRadius": 14
+  }
+}
