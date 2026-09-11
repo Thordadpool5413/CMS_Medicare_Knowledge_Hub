@@ -16,9 +16,8 @@ export const STATES = [
 ].map(([code, name]) => ({ code, name }));
 
 export function csvDownload(filename: string, rows: unknown[][]) {
-  const body = rows.map((row) => row.map((cell) => `"${String(cell ?? '').split('"').join('""')}"`).join(',')).join('\n');
-  const body = rows.map((row) => row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
-  const blob = new Blob([body], { type: 'text/csv;charset=utf-8' });
+  const csv = rows.map((row) => row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
   const href = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = href;
