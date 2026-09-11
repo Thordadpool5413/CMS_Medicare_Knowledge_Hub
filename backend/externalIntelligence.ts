@@ -59,7 +59,7 @@ async function ensureSsvi(force = false) {
     if (!totalSheet || !data25Sheet || !comp25Sheet || !data24Sheet || !comp24Sheet) throw new Error('SSVI schema validation failed: one or more required FY2024/FY2025 sheets are missing');
     const total = objectsFromRows(totalSheet[1]), d25Rows = objectsFromRows(data25Sheet[1]), c25Rows = objectsFromRows(comp25Sheet[1]), d24Rows = objectsFromRows(data24Sheet[1]), c24Rows = objectsFromRows(comp24Sheet[1]);
     if (total.length < 1000) throw new Error(`SSVI schema validation failed: only ${total.length} provider rows parsed`);
-    const by = (rows: Row[]) => new Map(rows.map((row) => [providerId(row), row]).filter(([id]) => /^\d{6}$/.test(String(id))));
+    const by = (rows: Row[]) => new Map<string, Row>(rows.map((row): [string, Row] => [providerId(row), row]).filter(([id]) => /^\d{6}$/.test(id)));
     const totals = by(total), d25 = by(d25Rows), c25 = by(c25Rows), d24 = by(d24Rows), c24 = by(c24Rows);
     const scoreFor = (row: Row, year: '2025' | '2024') => safeNumber(objField(row, [[year, 'total', 'score'], [`fy${year}`, 'total', 'score']]));
     const valid25 = total.map((row) => scoreFor(row, '2025')).filter((value): value is number => value !== null), stateScores = new Map<string, number[]>();
