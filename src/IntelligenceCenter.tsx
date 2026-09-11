@@ -52,8 +52,6 @@ export default function IntelligenceCenter({ state, stateName, provider, detail,
   const whiteRows = white?.counties || [];
   const ssviReportable = ssvi?.fy2025?.reportable === true && ssvi?.fy2025?.totalScore !== null && ssvi?.fy2025?.totalScore !== undefined;
   const adcHistory = (detail?.history || []).filter((row) => row.adc !== null && row.adc !== undefined).slice(-3);
-  const latestAdc = adcHistory.length ? adcHistory[adcHistory.length - 1] : null;
-  const growth = adcHistory.length >= 2 && Number(adcHistory[0].adc) > 0 ? (Number(latestAdc?.adc) / Number(adcHistory[0].adc) - 1) * 100 : null;
   const growth = adcHistory.length >= 2 && Number(adcHistory[0].adc) > 0 ? (Number(adcHistory[adcHistory.length - 1]?.adc) / Number(adcHistory[0].adc) - 1) * 100 : null;
 
   const toggleWatch = async () => {
@@ -88,7 +86,7 @@ export default function IntelligenceCenter({ state, stateName, provider, detail,
       </div>
     </div>
 
-    <div className={`alignment panel ${statusClass(alignment.status)}`}><div className='panel-head'><div><span className='kicker'>SOURCE PERIOD ALIGNMENT</span><h3>{alignment.status}</h3><p>{alignment.detail}</p></div><ShieldCheck size={18}/></div><div className='align-stats'><span><b>{alignment.confidencePenalty}%</b><small>confidence penalty</small></span><span><b>{alignment.coverage}%</b><small>evidence coverage</small></span><span><b>{alignment.periodCount}</b><small>period anchors</small></span></div></div>
+    <div className={`alignment panel ${statusClass(alignment.status)}`}><div className='panel-head'><div><span className='kicker'>SOURCE PERIOD ALIGNMENT</span><h3>{alignment.status}</h3><p>{alignment.explanation}</p></div><ShieldCheck size={18}/></div><div className='align-stats'><span><b>{alignment.confidencePenalty}%</b><small>confidence penalty</small></span><span><b>{alignment.spanYears ?? 'NR'}</b><small>span years</small></span><span><b>{alignment.sources.length}</b><small>period anchors</small></span></div></div>
 
     <div className='metrics six'>
       <Metric label='CAHPS summary star' value={detail?.cahpsSummary?.summaryStar ? `${detail.cahpsSummary.summaryStar}/5` : 'NR'} sub={detail?.periods?.cahpsDate || 'Published period NR'}/>
@@ -96,7 +94,6 @@ export default function IntelligenceCenter({ state, stateName, provider, detail,
       <Metric label='SSVI FY2025' value={ssviReportable ? num(ssvi?.fy2025?.totalScore) : 'NOT REPORTABLE'} sub='Oversight / variation context'/>
       <Metric label='Patient-service ZIPs' value={num(intel?.serviceArea?.focusZipCount)} sub='Observed CMS footprint'/>
       <Metric label='County footprint' value={num(geo?.counties?.length)} sub={geo?.mappingCoveragePct !== undefined ? `${pct(geo.mappingCoveragePct)} ZCTA mapping` : 'Census mapping'}/>
-      <Metric label='Recent ADC trend' value={growth === null ? 'INSUFFICIENT HISTORY' : pct(growth)} sub={adcHistory.length ? `${adcHistory[0].year} to ${latestAdc?.year}` : 'PAC history unavailable'}/>
       <Metric label='Recent ADC trend' value={growth === null ? 'INSUFFICIENT HISTORY' : pct(growth)} sub={adcHistory.length ? `${adcHistory[0].year} to ${adcHistory[adcHistory.length - 1]?.year}` : 'PAC history unavailable'}/>
     </div>
 
