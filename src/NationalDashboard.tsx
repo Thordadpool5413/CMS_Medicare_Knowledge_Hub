@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, ArrowUpRight, BarChart3, Bell, Building2, CheckCircle2, Database, DollarSign, Globe2, Home, LineChart, LoaderCircle, LockKeyhole, MapPinned, Network, RefreshCw, Scale, Search, ShieldCheck, Stethoscope, Target, Trophy, X } from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, BarChart3, Bell, Building2, CheckCircle2, Database, DollarSign, Globe2, Home, LineChart, LoaderCircle, LockKeyhole, MapPinned, Network, RefreshCw, Scale, Search, ShieldCheck, Stethoscope, Target, Trophy, X, Users } from 'lucide-react';
 import { api, auth } from '@appdeploy/client';
 import GlobalProviderSearch from './GlobalProviderSearch';
 import IntelligenceCenter from './IntelligenceCenter';
@@ -83,16 +83,12 @@ export default function NationalDashboard() {
 
   return <div className='app-shell'>
     <aside className='sidebar'><div className='brand'><span>CMS</span><div><b>Hospice Intelligence</b><small>Decision Platform</small></div></div><nav>{['DECIDE','INTELLIGENCE','GROWTH','ACCOUNTS','DATA'].map((group) => <div key={group} className='nav-group'><span>{group}</span>{NAV.filter((item) => item.group === group).map(({ id, label, icon: Icon }) => <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}><Icon size={16}/>{label}</button>)}</div>)}</nav><div className='sidebar-footer'><button onClick={() => void loadMarket(state, focus, true)} disabled={loading}><RefreshCw size={15} className={loading ? 'spin' : ''}/>Refresh market</button><button onClick={() => void loadProvider(focus, state)} disabled={detailLoading}><ArrowUpRight size={15}/>{detailLoading ? 'Loading provider...' : 'Reload provider'}</button><div className='login-card'>{user ? <><LockKeyhole size={14}/><div><b>{user.name || user.email || user.userId}</b><small>{user.scope || 'Signed in'}</small></div><button onClick={() => void signOut()} disabled={authBusy}>Sign out</button></> : <><Bell size={14}/><div><b>Private workspace</b><small>Sign in for watchlist, win/loss and operating truth.</small></div><button onClick={() => void signIn()} disabled={authBusy}>Sign in</button></>}</div></div></aside>
-
     <main className='main'>
       <header className='topbar'><div className='page-title'><span>NATIONAL HOSPICE EXPERT INTELLIGENCE & DECISION PLATFORM</span><h1>{NAV.find((item) => item.id === tab)?.label}</h1></div><div className='topbar-actions'><button onClick={() => setTab('decision')} className={tab === 'decision' ? 'active' : ''}><ShieldCheck size={15}/>Decision view</button><button onClick={() => setTab('intelligence')} className={tab === 'intelligence' ? 'active' : ''}><LineChart size={15}/>Provider 360</button><button onClick={() => setTab('sources')} className={tab === 'sources' ? 'active' : ''}><Database size={15}/>Source health</button></div></header>
-
       <div className='context-bar'><div><span className={`status-dot ${statusClass(data.dataQuality?.status)}`}/><span><small>ACTIVE PROVIDER</small><b>{selected.name}</b><em>{selected.city}, {selected.state} · CCN {selected.ccn}</em></span></div><div><small>MARKET</small><b>{data.stateName}</b></div><div><small>LAST REFRESH</small><b>{today()}</b></div></div>
-
       <div className='mobile-nav'><select value={tab} onChange={(event) => setTab(event.target.value as TabId)}>{NAV.map((item) => <option key={item.id} value={item.id}>{item.group} · {item.label}</option>)}</select></div>
       {error && <div className='alert global-alert'><AlertTriangle size={17}/><span>{error}</span><button onClick={() => setError('')}><X size={14}/></button></div>}
       {data.warnings?.length > 0 && <div className='warning-strip'><AlertTriangle size={15}/><span><b>Source issue:</b> {data.warnings.join(' · ')} Successful evidence remains available.</span></div>}
-
       {tab === 'command' && <CommandPage data={data} provider={selected} detail={detail} onNavigate={navigate} onProvider={(ccn, providerState) => { void loadProvider(ccn, providerState || state); }}/>} 
       {tab === 'decision' && <DecisionRoom state={state} stateName={data.stateName} market={data} provider={selected} detail={detail} user={user} onSignIn={() => void signIn()} onNavigate={navigate}/>} 
       {tab === 'intelligence' && <IntelligenceCenter state={state} stateName={data.stateName} provider={selected} detail={detail} marketSources={data.sources} user={user} onSignIn={() => void signIn()} onOpenProvider={(ccn) => void loadProvider(ccn, state)}/>} 
@@ -109,56 +105,12 @@ export default function NationalDashboard() {
   </div>;
 }
 
-function CommandPage({ data, provider, detail, onNavigate, onProvider }: { data: DashboardData; provider: Provider; detail: ProviderDetail | null; onNavigate: (tab: TabId) => void; onProvider: (ccn: string, providerState?: string) => void }) {
-  const serviceDays = Number(data.marketSummary?.serviceDays || 0), payments = Number(data.marketSummary?.payments || 0), dayShare = serviceDays && provider.days ? Number(provider.days) / serviceDays * 100 : null, paymentShare = payments && provider.payment ? Number(provider.payment) / payments * 100 : null;
-  return <section className='page'><div className='hero'><div><span className='kicker'>FOCUS PROVIDER · {data.stateName.toUpperCase()}</span><h2>{provider.name}</h2><p>{provider.city}, {provider.state} · CCN {provider.ccn}</p></div></div></section>;
-}
-
-function HospiceExplorer({ data, focus, onProvider }: { data: DashboardData; focus: string; onProvider: (ccn: string) => void }) {
-  const [query,setQuery] = useState('');
-  const rows = useMemo(() => { const q = query.trim().toLowerCase(); return data.providers.filter((row) => !q || `${row.name} ${row.city} ${row.county} ${row.ccn}`.toLowerCase().includes(q)); }, [data.providers, query]);
-  return <section className='page'><div className='hero'><div><span className='kicker'>{data.stateName.toUpperCase()} CMS-CERTIFIED MARKET</span><h2>Hospice Explorer</h2><p>State provider census and search.</p></div></div></section>;
-}
-
-function GrowthPage({ data, provider }: { data: DashboardData; provider: Provider }) {
-  const startAdc = Number(provider.adc || 0), startLos = Number(provider.daysPerBene || 60);
-  const [inputs,setInputs] = useState({ currentAdc:startAdc,targetAdc:startAdc ? Math.ceil(startAdc*1.15) : 0,losDays:startLos || 60,conversionPct:50 });
-  useEffect(() => setInputs({ currentAdc:Number(provider.adc||0),targetAdc:provider.adc?Math.ceil(Number(provider.adc)*1.15):0,losDays:Number(provider.daysPerBene||60),conversionPct:50 }), [provider.ccn]);
-  const result = solveGrowth(inputs), top = [...data.counties].filter((row) => row.opportunity !== null && row.opportunity !== undefined).sort((a,b) => Number(b.opportunity)-Number(a.opportunity)).slice(0,6);
-  return <section className='page'><div className='hero'><div><span className='kicker'>90-DAY GROWTH STRATEGY</span><h2>Turn a census target into admissions and referral requirements.</h2><p>The solver translates ADC goals into operating requirements.</p></div></div></section>;
-}
-
-function ComparePage({ data, focus }: { data: DashboardData; focus: string }) {
-  const [ccns,setCcns] = useState([focus,'','']); const [rows,setRows] = useState<ProviderDetail[]>([]); const [loading,setLoading] = useState(false); const [error,setError] = useState('');
-  useEffect(() => { setCcns([focus,'','']); setRows([]); }, [focus]);
-  const run = async () => { const ids = [...new Set(ccns.filter((id) => /^\d{6}$/.test(id)))]; if (ids.length < 2) { setError('Choose at least two six-digit hospice CCNs.'); return; } setLoading(true); setError(''); try { const results = await Promise.all(ids.map((ccn) => api.get(`/api/provider/${encodeURIComponent(ccn)}`))); setRows(results.map((result) => result.data as ProviderDetail)); } catch (requestError) { setError(apiError(requestError, 'Compare lookup failed.')); } finally { setLoading(false); } };
-  const metric = (detail: ProviderDetail, key: string) => key === 'adc' ? detail.provider.adc : key === 'beneficiaries' ? detail.provider.beneficiaries : key === 'payment' ? detail.provider.payment : key === 'star' ? detail.cahpsSummary?.summaryStar : key === 'recommend' ? detail.cahpsSummary?.recommendPct : key === 'hci' ? detail.qualitySummary?.hci : null;
-  const specs = [['adc','Est. Medicare ADC'],['beneficiaries','Medicare beneficiaries'],['payment','Medicare payments'],['star','CAHPS summary star'],['recommend','Definitely recommend'],['hci','Hospice Care Index']];
-  return <section className='page'><div className='hero'><div><span className='kicker'>HEAD-TO-HEAD INTELLIGENCE</span><h2>Compare up to three hospices nationally.</h2><p>Choose current-market providers or a provider from any U.S. market.</p></div></div></section>;
-}
-
+function CommandPage({ data, provider, detail, onNavigate, onProvider }: { data: DashboardData; provider: Provider; detail: ProviderDetail | null; onNavigate: (tab: TabId) => void; onProvider: (ccn: string, providerState?: string) => void }) { return <section className='page'><div className='hero'><div><span className='kicker'>FOCUS PROVIDER · {data.stateName.toUpperCase()}</span><h2>{provider.name}</h2><p>{provider.city}, {provider.state} · CCN {provider.ccn}</p></div></div></section>; }
+function HospiceExplorer({ data, focus, onProvider }: { data: DashboardData; focus: string; onProvider: (ccn: string) => void }) { return <section className='page'><div className='hero'><div><span className='kicker'>{data.stateName.toUpperCase()} CMS-CERTIFIED MARKET</span><h2>Hospice Explorer</h2><p>State provider census and search.</p></div></div></section>; }
+function GrowthPage({ data, provider }: { data: DashboardData; provider: Provider }) { return <section className='page'><div className='hero'><div><span className='kicker'>90-DAY GROWTH STRATEGY</span><h2>Turn a census target into admissions and referral requirements.</h2></div></div></section>; }
+function ComparePage({ data, focus }: { data: DashboardData; focus: string }) { return <section className='page'><div className='hero'><div><span className='kicker'>HEAD-TO-HEAD INTELLIGENCE</span><h2>Compare up to three hospices nationally.</h2></div></div></section>; }
 function OwnershipPage({ provider, detail }: { provider: Provider; detail: ProviderDetail | null }) { return <section className='page'><div className='hero'><div><span className='kicker'>OWNERSHIP / PECOS CONTEXT</span><h2>{provider.name}</h2></div></div></section>; }
-
-function WatchlistPage({ user, current, onSignIn, onOpen }: { user: User | null; current: Provider; onSignIn: () => void; onOpen: (ccn: string, state: string) => void }) {
-  const [records,setRecords] = useState<AnyRow[]>([]), [loading,setLoading] = useState(false), [error,setError] = useState('');
-  const load = async () => { if (!user) return; setLoading(true); try { const response = await api.get('/api/watchlist'); setRecords(response.data.records || []); } catch (requestError) { setError(apiError(requestError, 'Watchlist refresh failed.')); } finally { setLoading(false); } };
-  useEffect(() => { setRecords([]); if (user) void load(); }, [user?.userId]);
-  const watching = records.some((row) => row.ccn === current.ccn);
-  const add = async () => { if (!user) return; setLoading(true); try { await api.post('/api/watchlist',{ccn:current.ccn,state:current.state,label:current.name}); await load(); } catch (requestError) { setError(apiError(requestError, 'Watchlist update failed.')); } finally { setLoading(false); } };
-  const remove = async (id: string) => { setLoading(true); try { await api.delete(`/api/watchlist/${encodeURIComponent(id)}`); await load(); } catch (requestError) { setError(apiError(requestError, 'Watchlist removal failed.')); } finally { setLoading(false); } };
-  if (!user) return <section className='page'><div className='hero'><div><span className='kicker'>PRIVATE WATCHLIST</span><h2>Monitor provider changes without manually reopening the same dossiers.</h2></div></div></section>;
-  return <section className='page'><div className='hero'><div><span className='kicker'>PRIVATE WATCHLIST</span><h2>Provider change intelligence</h2></div></div></section>;
-}
-
-function WinLossPage({ user, provider, counties, onSignIn }: { user: User | null; provider: Provider; counties: AnyRow[]; onSignIn: () => void }) {
-  const [records,setRecords] = useState<AnyRow[]>([]), [summary,setSummary] = useState<AnyRow>({}), [loading,setLoading] = useState(false), [error,setError] = useState(''), [form,setForm] = useState({ account:'', competitor:'', county: counties[0]?.name || '', won:false, notes:'' });
-  const load = async () => { if (!user) return; setLoading(true); try { const response = await api.get(`/api/winloss?ccn=${encodeURIComponent(provider.ccn)}`); setRecords(response.data.records || []); setSummary(response.data.summary || {}); } catch (requestError) { setError(apiError(requestError, 'Win/loss refresh failed.')); } finally { setLoading(false); } };
-  useEffect(() => { setRecords([]);setSummary({});setForm((current) => ({...current,account:'',competitor:'',notes:'',county:counties[0]?.name || ''})); if (user) void load(); }, [user?.userId,provider.ccn,counties[0]?.name]);
-  const save = async () => { if (!user) return; if (!form.account.trim()) { setError('Account is required.'); return; } setLoading(true);setError(''); try { await api.post('/api/winloss',{providerCcn:provider.ccn, ...form}); await load(); } catch (requestError) { setError(apiError(requestError, 'Win/loss save failed.')); } finally { setLoading(false); } };
-  const remove = async (id:string) => { setLoading(true); try { await api.delete(`/api/winloss/${encodeURIComponent(id)}?ccn=${encodeURIComponent(provider.ccn)}`); await load(); } catch (requestError) { setError(apiError(requestError, 'Win/loss delete failed.')); } finally { setLoading(false); } };
-  if (!user) return <section className='page'><div className='hero'><div><span className='kicker'>PRIVATE FIELD INTELLIGENCE</span><h2>Win / Loss</h2></div></div></section>;
-  return <section className='page'><div className='hero'><div><span className='kicker'>PRIVATE FIELD INTELLIGENCE · {provider.name}</span><h2>Win / Loss</h2></div></div></section>;
-}
-
+function WatchlistPage({ user, current, onSignIn, onOpen }: { user: User | null; current: Provider; onSignIn: () => void; onOpen: (ccn: string, state: string) => void }) { return <section className='page'><div className='hero'><div><span className='kicker'>PRIVATE WATCHLIST</span><h2>Provider change intelligence</h2></div></div></section>; }
+function WinLossPage({ user, provider, counties, onSignIn }: { user: User | null; provider: Provider; counties: AnyRow[]; onSignIn: () => void }) { return <section className='page'><div className='hero'><div><span className='kicker'>PRIVATE FIELD INTELLIGENCE · {provider.name}</span><h2>Win / Loss</h2></div></div></section>; }
 function Metric({ icon: Icon, label, value, sub }: { icon: typeof Users; label: string; value: string; sub: string }) { return <div className='metric'><Icon size={17}/><span>{label}</span><b>{value}</b><small>{sub}</small></div>; }
 function Launch({ icon: Icon, label, note, onClick }: { icon: typeof Home; label: string; note: string; onClick: () => void }) { return <button className='launch-card' onClick={onClick}><Icon size={20}/><b>{label}</b><p>{note}</p></button>; }
